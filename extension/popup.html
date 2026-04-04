@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>VerifyNews Analyzer</title>
+    <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+    <div class="header">
+        <h1>🔍 Verify<span class="gradient-text">News</span></h1>
+    </div>
+    
+    <div id="content">
+        <button id="analyzeBtn" class="btn btn-primary">Analyze Current Tab</button>
+        <p id="statusMessage"></p>
+    </div>
+
+    <div id="result" class="hidden">
+        <h2 id="resultTitle"></h2>
+        <div class="score-circle-container">
+            <div class="score-value" id="overallScore"></div>
+            <div class="score-label">out of 100</div>
+        </div>
+        <div id="verdictBadge" class="verdict-badge"></div>
+        <div class="details">
+            <p><strong>Sentiment:</strong> <span id="f_sentiment"></span>/100</p>
+            <p><strong>Clickbait:</strong> <span id="f_clickbait"></span>/100</p>
+            <p><strong>Bias:</strong> <span id="f_bias"></span>/100</p>
+        </div>
+        <a id="viewFullLink" href="#" target="_blank" class="btn btn-secondary">View Analysis</a>
+    </div>
+
+    <script src="popup.js"></script>
+</body>
+</html>

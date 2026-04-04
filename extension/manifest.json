@@ -1,0 +1,13 @@
+{
+  "manifest_version": 3,
+  "name": "VerifyNews Analyzer",
+  "version": "1.0",
+  "description": "Instantly analyze the current news article for fake news, bias, and clickbait.",
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Analyze Article"
+  },
+  "permissions": [
+    "activeTab"
+  ]
+}
