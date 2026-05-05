@@ -33,21 +33,24 @@ document.getElementById('analyzeBtn').addEventListener('click', async () => {
         document.getElementById('content').classList.add('hidden');
         document.getElementById('result').classList.remove('hidden');
         
-        document.getElementById('resultTitle').textContent = data.title.substring(0, 40) + '...';
-        document.getElementById('overallScore').textContent = data.overallScore;
-        
-        // Color based on score
-        const valDiv = document.getElementById('overallScore');
-        const badge = document.getElementById('verdictBadge');
-        if (data.overallScore >= 75) { valDiv.style.color = '#22c55e'; badge.style.backgroundColor = 'rgba(34,197,94,0.2)'; badge.style.color = '#22c55e'; }
-        else if (data.overallScore >= 50) { valDiv.style.color = '#eab308'; badge.style.backgroundColor = 'rgba(234,179,8,0.2)'; badge.style.color = '#eab308'; }
-        else { valDiv.style.color = '#ef4444'; badge.style.backgroundColor = 'rgba(239,68,68,0.2)'; badge.style.color = '#ef4444'; }
-        
-        badge.textContent = data.verdict;
-        
-        document.getElementById('f_sentiment').textContent = Math.round(data.factors.sentiment);
-        document.getElementById('f_clickbait').textContent = Math.round(data.factors.clickbait);
-        document.getElementById('f_bias').textContent = Math.round(data.factors.bias);
+       document.getElementById('resultTitle').textContent = tab.url.substring(0, 40) + '...';
+
+document.getElementById('overallScore').textContent = (data.confidence * 100).toFixed(1) + "%";
+
+const valDiv = document.getElementById('overallScore');
+const badge = document.getElementById('verdictBadge');
+
+badge.textContent = data.label.toUpperCase();
+
+if (data.label === "real") {
+    valDiv.style.color = '#22c55e';
+    badge.style.backgroundColor = 'rgba(34,197,94,0.2)';
+    badge.style.color = '#22c55e';
+} else {
+    valDiv.style.color = '#ef4444';
+    badge.style.backgroundColor = 'rgba(239,68,68,0.2)';
+    badge.style.color = '#ef4444';
+}
         
         if (data.id) {
             document.getElementById('viewFullLink').href = `${FRONTEND_URL}/${data.id}`;
