@@ -126,6 +126,9 @@ def get_top_influential_words(text: str, predicted_label: str, pipeline, label_e
 # ---------------------------------------------------------------------------
 # Routes
 # ---------------------------------------------------------------------------
+@app.route("/")
+def home():
+    return "Fake News Detector API is running 🚀"
 
 @app.route("/health", methods=["GET"])
 def health():
