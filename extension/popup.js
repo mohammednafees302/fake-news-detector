@@ -1,5 +1,5 @@
-const API_URL = 'http://localhost:5000/api/analyze'; // Ensure local backend is running!
-const FRONTEND_URL = 'http://localhost:5173/analyze';
+const API_URL = 'https://fake-news-detector-58ty.onrender.com/predict';
+const FRONTEND_URL = 'https://fake-news-detector-taupe-tau.vercel.app';
 
 document.getElementById('analyzeBtn').addEventListener('click', async () => {
     const btn = document.getElementById('analyzeBtn');
@@ -23,7 +23,7 @@ document.getElementById('analyzeBtn').addEventListener('click', async () => {
         const response = await fetch(API_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ url: tab.url })
+            body: JSON.stringify({ text: tab.url })
         });
         
         if (!response.ok) throw new Error('API Request Failed');
