@@ -1,6 +1,10 @@
 import Sentiment from 'sentiment';
 import natural from 'natural';
 import fetch from 'node-fetch';
+import { config } from '../config.js';
+import { queryOne } from '../database/init.js';
+import { logger } from '../utils/logger.js';
+import { mlPredict } from './mlClient.js';
 
 const sentiment = new Sentiment();
 const tokenizer = new natural.WordTokenizer();
@@ -255,13 +259,13 @@ export async function analyzeNews(text, sourceUrl = null) {
     // AI Integration
     let aiExplanation = null;
     let aiScoreAdjustment = 0;
-    if (process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY !== 'your_openai_api_key_here') {
+    if (config.openAiApiKey && config.openAiApiKey !== 'your_openai_api_key_here') {
         try {
             const aiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
+                    'Authorization': `Bearer ${config.openAiApiKey}`
                 },
                 body: JSON.stringify({
                     model: 'gpt-3.5-turbo',
@@ -286,7 +290,7 @@ export async function analyzeNews(text, sourceUrl = null) {
                 }
             }
         } catch (err) {
-            console.error('OpenAI API error:', err);
+            logger.warn('openai_api_error', { error: err.message });
         }
     }
 
@@ -297,14 +301,81 @@ export async function analyzeNews(text, sourceUrl = null) {
     else if (overallScore >= 30) verdict = 'Suspicious';
     else verdict = 'Likely Fake';
 
+    let heuristicScore = overallScore;
+    let heuristicContribution = 0; // For transparency
+
+    // ML Microservice Integration (Python Flask)
+    let mlPrediction = null;
+    try {
+        const mlResult = await mlPredict(text);
+        if (mlResult && typeof mlResult.fake_probability === 'number') {
+            mlPrediction = mlResult;
+
+            const mlScore = Math.round(mlResult.real_probability * 100);
+            
+            // ML is the primary decision maker
+            let mlWeight = 0.9; // Base 90% ML, 10% heuristic
+            if (mlResult.confidence > 0.7) {
+                mlWeight = 1.0; // Complete override
+            }
+            
+            const heuristicWeight = 1.0 - mlWeight;
+            heuristicContribution = Math.round(heuristicScore * heuristicWeight);
+
+            overallScore = Math.round(
+                (mlScore * mlWeight) + (heuristicScore * heuristicWeight)
+            );
+            overallScore = Math.max(0, Math.min(100, overallScore));
+
+            // Re-derive verdict after blending
+            if (overallScore >= 75) verdict = 'Likely Credible';
+            else if (overallScore >= 50) verdict = 'Needs Verification';
+            else if (overallScore >= 30) verdict = 'Suspicious';
+            else verdict = 'Likely Fake';
+
+            // Add ML as a named factor
+            factors.mlModel = mlScore;
+            const conf = Math.round(mlResult.confidence * 100);
+            
+            let explanationText = `ML model predicts this article is ${mlResult.label.toUpperCase()} with ${conf}% confidence. `;
+            if (mlWeight === 1.0) {
+                explanationText += `High confidence overrides heuristics.`;
+            } else {
+                explanationText += `Heuristics contributed slightly (${Math.round(heuristicWeight * 100)}%).`;
+            }
+            if (mlResult.reasons && mlResult.reasons.length) {
+                explanationText += ` ${mlResult.reasons[0]}`;
+            }
+            explanations.mlModel = explanationText;
+        }
+    } catch (mlErr) {
+        logger.warn('ml_integration_error', { error: mlErr.message });
+    }
+
     return {
         title: title || 'Untitled Article',
         overallScore,
+        heuristicScore,
         verdict,
         factors,
         explanations,
         wordCount: totalWords,
         analysisDate: new Date().toISOString(),
+        // ML enrichment fields
+        mlPrediction: mlPrediction
+            ? {
+                  label: mlPrediction.label,
+                  confidence: mlPrediction.confidence,
+                  fakeProbability: mlPrediction.fake_probability,
+                  realProbability: mlPrediction.real_probability,
+                  suspiciousWords: mlPrediction.suspicious_words || [],
+                  topInfluentialWords: mlPrediction.top_influential_words || [],
+                  highlightedSentences: mlPrediction.highlighted_sentences || [],
+                  reasons: mlPrediction.reasons || [],
+                  modelUsed: mlPrediction.model_used || 'ML Model',
+                  heuristicContribution,
+              }
+            : null,
     };
 }
 
@@ -322,21 +393,13 @@ function extractTitle(text) {
     return text.substring(0, 80).trim() + '...';
 }
 
-export function checkSourceCredibility(db, url) {
+export async function checkSourceCredibility(url) {
     if (!url) return null;
 
     try {
         const urlObj = new URL(url);
-        let domain = urlObj.hostname.replace(/^www\./, '');
-
-        const stmt = db.prepare('SELECT * FROM sources WHERE domain = ?');
-        stmt.bind([domain]);
-        let source = null;
-        if (stmt.step()) {
-            source = stmt.getAsObject();
-        }
-        stmt.free();
-        return source;
+        const domain = urlObj.hostname.replace(/^www\./, '');
+        return await queryOne('SELECT * FROM sources WHERE domain = ?', [domain]);
     } catch {
         return null;
     }

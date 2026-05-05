@@ -5,16 +5,20 @@ import api from '../services/api';
 function Home() {
     const [stats, setStats] = useState(null);
     const [liveActivity, setLiveActivity] = useState([]);
+    const [statsError, setStatsError] = useState('');
     const intervalRef = useRef(null);
 
     const loadStats = async () => {
         try {
             const data = await api.getStats();
             setStats(data);
+            setStatsError('');
             if (data.recentAnalyses) {
                 setLiveActivity(data.recentAnalyses.slice(-5).reverse());
             }
-        } catch (e) {}
+        } catch (e) {
+            setStatsError('Live platform stats are temporarily unavailable.');
+        }
     };
 
     useEffect(() => {
@@ -87,6 +91,7 @@ function Home() {
 
             {/* Stats Strip */}
             <section className="container">
+                {statsError && <div className="auth-error" style={{ marginBottom: 'var(--space-md)' }}>{statsError}</div>}
                 <div className="stats-strip">
                     {[
                         { number: stats ? stats.totalAnalyses.toLocaleString() : '0', label: 'Articles Analyzed' },

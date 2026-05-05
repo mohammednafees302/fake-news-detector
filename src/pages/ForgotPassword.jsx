@@ -92,8 +92,8 @@ function ForgotPassword() {
             setError('Passwords do not match.');
             return;
         }
-        if (newPassword.length < 6) {
-            setError('Password must be at least 6 characters.');
+        if (newPassword.length < 8) {
+            setError('Password must be at least 8 characters.');
             return;
         }
         setError('');
@@ -224,11 +224,11 @@ function ForgotPassword() {
                                     id="fp-new-password"
                                     type="password"
                                     className="input-field"
-                                    placeholder="Min. 6 characters"
+                                    placeholder="Min. 8 characters"
                                     value={newPassword}
                                     onChange={(e) => setNewPassword(e.target.value)}
                                     required
-                                    minLength={6}
+                                    minLength={8}
                                 />
                             </div>
                             <div className="input-group">
@@ -241,7 +241,7 @@ function ForgotPassword() {
                                     value={confirmPassword}
                                     onChange={(e) => setConfirmPassword(e.target.value)}
                                     required
-                                    minLength={6}
+                                    minLength={8}
                                 />
                             </div>
                             <button type="submit" className="btn btn-primary btn-lg" disabled={loading}>

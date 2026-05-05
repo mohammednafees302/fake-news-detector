@@ -3,3 +3,5 @@ dist/
 .env
 server/database/verifynews.db
 *.log
+data/
+backups/

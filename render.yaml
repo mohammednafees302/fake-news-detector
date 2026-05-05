@@ -1,0 +1,45 @@
+services:
+  - type: web
+    name: verifynews
+    env: node
+    plan: starter
+    buildCommand: npm ci && npm run build
+    startCommand: npm run start
+    healthCheckPath: /api/ready
+    disk:
+      name: verifynews-data
+      mountPath: /opt/render/project/data
+      sizeGB: 1
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: APP_BASE_URL
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: DATABASE_PROVIDER
+        value: postgres
+      - key: DATABASE_URL
+        fromDatabase:
+          name: verifynews-db
+          property: connectionString
+      - key: DATABASE_SSL
+        value: "true"
+      - key: EMAIL_PROVIDER
+        value: resend
+      - key: RESEND_API_KEY
+        sync: false
+      - key: EMAIL_FROM
+        sync: false
+      - key: GOOGLE_API_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: BACKUP_DIR
+        value: /opt/render/project/data/backups
+      - key: SEED_DEMO_DATA
+        value: "false"
+databases:
+  - name: verifynews-db
+    databaseName: verifynews
+    plan: starter

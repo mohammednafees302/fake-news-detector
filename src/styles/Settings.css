@@ -1,0 +1,165 @@
+.settings-container {
+    max-width: 1000px;
+    margin: 40px auto;
+    padding: 20px;
+}
+
+.settings-container h1 {
+    color: #60a5fa;
+    margin-bottom: 30px;
+}
+
+.settings-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 30px;
+    border-bottom: 2px solid #334155;
+    flex-wrap: wrap;
+}
+
+.tab {
+    padding: 12px 20px;
+    background: transparent;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    font-size: 0.95rem;
+    border-bottom: 3px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.tab:hover {
+    color: #60a5fa;
+}
+
+.tab.active {
+    color: #60a5fa;
+    border-bottom-color: #60a5fa;
+}
+
+.api-section, .webhooks-section, .alerts-section {
+    background: #1e293b;
+    padding: 25px;
+    border-radius: 8px;
+}
+
+.api-section h2, .webhooks-section h2, .alerts-section h2 {
+    color: #f1f5f9;
+    margin-bottom: 20px;
+}
+
+.key-form, .webhook-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 30px;
+    background: #0f172a;
+    padding: 20px;
+    border-radius: 6px;
+}
+
+.key-form input, .webhook-form input {
+    padding: 12px;
+    background: #0f172a;
+    border: 1px solid #475569;
+    border-radius: 6px;
+    color: #f1f5f9;
+    font-size: 1rem;
+}
+
+.event-checkboxes {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.event-checkboxes label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #e2e8f0;;
+    cursor: pointer;
+}
+
+.event-checkboxes input {
+    cursor: pointer;
+}
+
+.key-form button, .webhook-form button {
+    padding: 12px;
+    background: #6366f1;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.key-form button:hover, .webhook-form button:hover {
+    background: #4f46e5;
+}
+
+.keys-list, .webhooks-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.key-card, .webhook-card {
+    background: #0f172a;
+    padding: 15px;
+    border-radius: 6px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.key-card strong, .webhook-card strong {
+    color: #f1f5f9;
+}
+
+.key-card small, .webhook-card small {
+    color: #94a3b8;
+    display: block;
+    margin-top: 5px;
+}
+
+.btn-danger {
+    padding: 8px 16px;
+    background: #dc2626;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-danger:hover {
+    background: #b91c1c;
+}
+
+.subscription-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.subscription-item {
+    background: #0f172a;
+    padding: 15px;
+    border-radius: 6px;
+}
+
+.subscription-item label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #e2e8f0;
+    cursor: pointer;
+}
+
+.subscription-item input {
+    cursor: pointer;
+}

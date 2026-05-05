@@ -1,0 +1,135 @@
+.admin-container {
+    max-width: 1000px;
+    margin: 40px auto;
+    padding: 20px;
+}
+
+.admin-container h1 {
+    color: #dc2626;
+    margin-bottom: 30px;
+}
+
+.filter-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 30px;
+}
+
+.filter-tabs button {
+    padding: 12px 20px;
+    background: #1e293b;
+    border: 1px solid #475569;
+    border-radius: 6px;
+    color: #cbd5e1;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.filter-tabs button:hover {
+    border-color: #dc2626;
+    color: #f1f5f9;
+}
+
+.filter-tabs button.active {
+    background: #dc2626;
+    border-color: #dc2626;
+    color: white;
+}
+
+.flags-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.flag-card {
+    background: #1e293b;
+    padding: 20px;
+    border-radius: 8px;
+    border-left: 4px solid #f59e0b;
+}
+
+.flag-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.flag-header h3 {
+    color: #f1f5f9;
+    margin: 0;
+}
+
+.status {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: capitalize;
+}
+
+.status-pending {
+    background: #fbbf24;
+    color: #78350f;
+}
+
+.status-approved {
+    background: #86efac;
+    color: #15803d;
+}
+
+.status-dismissed {
+    background: #f87171;
+    color: #7f1d1d;
+}
+
+.reason {
+    color: #cbd5e1;
+    margin: 10px 0;
+}
+
+.flag-card small {
+    color: #94a3b8;
+}
+
+.actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.btn-approve, .btn-dismiss {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-approve {
+    background: #10b981;
+    color: white;
+}
+
+.btn-approve:hover {
+    background: #059669;
+}
+
+.btn-dismiss {
+    background: #6b7280;
+    color: white;
+}
+
+.btn-dismiss:hover {
+    background: #4b5563;
+}
+
+.empty-state {
+    text-align: center;
+    color: #94a3b8;
+    padding: 40px 20px;
+    font-size: 1.1rem;
+}

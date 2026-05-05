@@ -1,0 +1,62 @@
+.trending-container {
+    max-width: 900px;
+    margin: 40px auto;
+    padding: 20px;
+}
+
+.trending-container h1 {
+    color: #60a5fa;
+    margin-bottom: 30px;
+    font-size: 2rem;
+}
+
+.claims-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.claim-card {
+    display: flex;
+    background: #1e293b;
+    border-radius: 8px;
+    padding: 20px;
+    border-left: 4px solid #f59e0b;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.claim-card:hover {
+    background: #334155;
+    transform: translateX(5px);
+}
+
+.claim-rank {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #f59e0b;
+    min-width: 50px;
+    text-align: center;
+}
+
+.claim-content {
+    flex: 1;
+    margin-left: 15px;
+}
+
+.claim-content h3 {
+    margin: 0 0 10px 0;
+    color: #f1f5f9;
+}
+
+.claim-stats {
+    display: flex;
+    gap: 20px;
+    font-size: 0.9rem;
+    color: #94a3b8;
+}
+
+.occurrences, .updated {
+    display: flex;
+    align-items: center;
+}

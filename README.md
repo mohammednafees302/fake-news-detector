@@ -116,7 +116,7 @@ npm install
 
 # 3. Set up environment variables
 cp .env.example .env
-# Edit .env and add your API keys (optional but recommended)
+# Edit .env and set JWT_SECRET plus any API/email keys you want to enable
 
 # 4. Run both frontend and backend together
 npm run dev:full
@@ -129,8 +129,30 @@ Open **http://localhost:5173** in your browser.
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `PORT` | No | Backend port (default: 5000) |
-| `OPENAI_API_KEY` | Optional | Enables AI-enhanced analysis via GPT-3.5 |
+| `APP_BASE_URL` | Yes | Public frontend URL used in production links |
+| `JWT_SECRET` | Yes | Strong secret for signing auth tokens |
+| `EMAIL_PROVIDER` | Yes for production | `console` for local dev, `resend` for real OTP delivery |
+| `RESEND_API_KEY` | Required with `EMAIL_PROVIDER=resend` | Sends password reset OTP emails |
+| `EMAIL_FROM` | Required with `EMAIL_PROVIDER=resend` | Verified sender address |
+| `DB_PATH` | No | Local persistent database file path |
+| `BACKUP_DIR` | No | Backup output folder for `npm run backup:db` |
+| `SEED_DEMO_DATA` | No | Seeds demo data locally when `true` |
+| `OPENAI_API_KEY` | Optional | Enables AI-enhanced analysis |
 | `GOOGLE_API_KEY` | Optional | Enables Google Fact Check cross-referencing |
+
+### Production upgrades included
+
+- OTP email delivery abstraction with Resend support
+- JWT secret validation in production
+- One-upvote-per-user enforcement with a dedicated vote table
+- Login and OTP brute-force protection
+- Structured request logging
+- `/api/health` and `/api/ready` monitoring endpoints
+- PostgreSQL-ready production configuration via `DATABASE_PROVIDER=postgres`
+- Backup export script: `npm run backup:db`
+- Render deployment manifest with managed Postgres wiring
+- Dockerfile for container deployment
+- Node test suite for auth, health, backup, and report protection
 
 ---
 

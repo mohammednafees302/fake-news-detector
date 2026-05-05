@@ -9,26 +9,41 @@ function Navbar() {
     const [mobileOpen, setMobileOpen] = useState(false);
 
     const isActive = (path) => location.pathname === path ? 'active' : '';
-
     const closeMobile = () => setMobileOpen(false);
+
+    const mobileLinks = [
+        { to: '/', label: 'Home' },
+        { to: '/analyze', label: 'Analyze' },
+        { to: '/trending', label: '🔥 Trending' },
+        { to: '/learn', label: '📚 Learn' },
+        { to: '/community', label: '👥 Community' },
+        { to: '/leaderboard', label: 'Leaderboard' },
+        ...(user ? [{ to: '/dashboard', label: 'Dashboard' }, { to: '/settings', label: '⚙️ Settings' }] : []),
+        ...(user?.is_admin ? [{ to: '/admin', label: 'Admin Panel' }, { to: '/moderation', label: '🛡️ Moderation' }] : []),
+        ...(user ? [{ to: '/publisher', label: '📰 Publisher' }] : []),
+        { to: '/report', label: 'Report' },
+        { to: '/about', label: 'About' },
+    ];
 
     return (
         <nav className="navbar">
             <div className="navbar-inner">
                 <Link to="/" className="navbar-logo" onClick={closeMobile}>
-                    <div className="navbar-logo-icon">🛡️</div>
+                    <div className="navbar-logo-icon">VN</div>
                     <span>Verify<span className="gradient-text">News</span></span>
                 </Link>
 
                 <div className="navbar-links">
-                    <Link to="/" className={`nav-link ${isActive('/')}`}>🏠 Home</Link>
-                    <Link to="/analyze" className={`nav-link ${isActive('/analyze')}`}>🔍 Analyze</Link>
-                    <Link to="/leaderboard" className={`nav-link ${isActive('/leaderboard')}`}>🏆 Leaderboard</Link>
-                    {user && (
-                        <Link to="/dashboard" className={`nav-link ${isActive('/dashboard')}`}>📊 Dashboard</Link>
-                    )}
-                    <Link to="/report" className={`nav-link ${isActive('/report')}`}>🚨 Report</Link>
-                    <Link to="/about" className={`nav-link ${isActive('/about')}`}>ℹ️ About</Link>
+                    <Link to="/" className={`nav-link ${isActive('/')}`}>Home</Link>
+                    <Link to="/analyze" className={`nav-link ${isActive('/analyze')}`}>Analyze</Link>
+                    <Link to="/trending" className={`nav-link ${isActive('/trending')}`}>🔥 Trending</Link>
+                    <Link to="/learn" className={`nav-link ${isActive('/learn')}`}>📚 Learn</Link>
+                    <Link to="/community" className={`nav-link ${isActive('/community')}`}>👥 Community</Link>
+                    <Link to="/leaderboard" className={`nav-link ${isActive('/leaderboard')}`}>Leaderboard</Link>
+                    {user && <Link to="/dashboard" className={`nav-link ${isActive('/dashboard')}`}>Dashboard</Link>}
+                    {user?.is_admin && <Link to="/admin" className={`nav-link ${isActive('/admin')}`}>Admin</Link>}
+                    <Link to="/report" className={`nav-link ${isActive('/report')}`}>Report</Link>
+                    <Link to="/about" className={`nav-link ${isActive('/about')}`}>About</Link>
                 </div>
 
                 <div className="navbar-auth">
@@ -50,15 +65,31 @@ function Navbar() {
                                     <Link to="/dashboard" className="navbar-dropdown-item" onClick={() => setShowDropdown(false)}>
                                         📊 Dashboard
                                     </Link>
+                                    <Link to="/settings" className="navbar-dropdown-item" onClick={() => setShowDropdown(false)}>
+                                        ⚙️ Settings
+                                    </Link>
+                                    <Link to="/publisher" className="navbar-dropdown-item" onClick={() => setShowDropdown(false)}>
+                                        📰 Publisher Profile
+                                    </Link>
+                                    {user?.is_admin && (
+                                        <>
+                                            <Link to="/admin" className="navbar-dropdown-item" onClick={() => setShowDropdown(false)}>
+                                                Admin Panel
+                                            </Link>
+                                            <Link to="/moderation" className="navbar-dropdown-item" onClick={() => setShowDropdown(false)}>
+                                                🛡️ Moderation
+                                            </Link>
+                                        </>
+                                    )}
                                     <Link to="/leaderboard" className="navbar-dropdown-item" onClick={() => setShowDropdown(false)}>
-                                        🏆 Leaderboard
+                                        Leaderboard
                                     </Link>
                                     <button
                                         className="navbar-dropdown-item"
                                         onClick={() => { logout(); setShowDropdown(false); }}
                                         style={{ color: 'var(--danger)' }}
                                     >
-                                        🚪 Logout
+                                        Logout
                                     </button>
                                 </div>
                             )}
@@ -72,29 +103,23 @@ function Navbar() {
                 </div>
 
                 <button className="navbar-mobile-btn" onClick={() => setMobileOpen(!mobileOpen)} aria-label="Menu">
-                    {mobileOpen ? '✕' : '☰'}
+                    {mobileOpen ? 'X' : '='}
                 </button>
             </div>
 
-            {/* Mobile Menu */}
             {mobileOpen && (
-                <div style={{
-                    background: 'rgba(15,23,42,0.98)',
-                    backdropFilter: 'blur(20px)',
-                    borderTop: '1px solid var(--border-color)',
-                    padding: 'var(--space-md)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '4px',
-                }}>
-                    {[
-                        { to: '/', label: '🏠 Home' },
-                        { to: '/analyze', label: '🔍 Analyze' },
-                        { to: '/leaderboard', label: '🏆 Leaderboard' },
-                        ...(user ? [{ to: '/dashboard', label: '📊 Dashboard' }] : []),
-                        { to: '/report', label: '🚨 Report' },
-                        { to: '/about', label: 'ℹ️ About' },
-                    ].map(link => (
+                <div
+                    style={{
+                        background: 'rgba(15,23,42,0.98)',
+                        backdropFilter: 'blur(20px)',
+                        borderTop: '1px solid var(--border-color)',
+                        padding: 'var(--space-md)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '4px',
+                    }}
+                >
+                    {mobileLinks.map((link) => (
                         <Link
                             key={link.to}
                             to={link.to}
@@ -107,7 +132,7 @@ function Navbar() {
                     ))}
                     {user ? (
                         <button className="btn btn-ghost" onClick={() => { logout(); closeMobile(); }} style={{ color: 'var(--danger)', marginTop: 4 }}>
-                            🚪 Logout
+                            Logout
                         </button>
                     ) : (
                         <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>

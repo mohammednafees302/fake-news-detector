@@ -1,33 +1,24 @@
 import { Router } from 'express';
 import { v4 as uuidv4 } from 'uuid';
-import { getDB, saveDB } from '../database/init.js';
-import { authMiddleware, optionalAuth } from '../middleware/auth.js';
+import { queryAll, queryOne, runStmt } from '../database/init.js';
+import { adminMiddleware, authMiddleware, optionalAuth } from '../middleware/auth.js';
+import { createRateLimiter } from '../middleware/security.js';
+import { logger } from '../utils/logger.js';
+import { clampPageSize, isValidHttpUrl } from '../utils/validation.js';
 
 const router = Router();
+const reportRateLimit = createRateLimiter({
+    windowMs: 10 * 60 * 1000,
+    maxRequests: 25,
+    message: 'Too many report actions. Please wait a bit before trying again.',
+});
 
-function queryAll(db, sql, params = []) {
-    const stmt = db.prepare(sql);
-    stmt.bind(params);
-    const rows = [];
-    while (stmt.step()) rows.push(stmt.getAsObject());
-    stmt.free();
-    return rows;
-}
-
-function queryOne(db, sql, params = []) {
-    const rows = queryAll(db, sql, params);
-    return rows[0] || null;
-}
-
-function runStmt(db, sql, params = []) {
-    db.run(sql, params);
-    saveDB();
-}
-
-// Submit a report
-router.post('/', authMiddleware, async (req, res) => {
+router.post('/', authMiddleware, reportRateLimit, async (req, res) => {
     try {
-        const { title, url, description, category } = req.body;
+        const title = String(req.body.title || '').trim();
+        const url = String(req.body.url || '').trim();
+        const description = String(req.body.description || '').trim();
+        const category = String(req.body.category || '').trim();
 
         if (!title || !description || !category) {
             return res.status(400).json({ error: 'Title, description, and category are required.' });
@@ -38,42 +29,47 @@ router.post('/', authMiddleware, async (req, res) => {
             return res.status(400).json({ error: 'Invalid category.' });
         }
 
-        const db = await getDB();
+        if (url && !isValidHttpUrl(url)) {
+            return res.status(400).json({ error: 'Please enter a valid URL starting with http:// or https://.' });
+        }
+
         const id = uuidv4();
 
-        runStmt(db,
+        await runStmt(
             'INSERT INTO reports (id, user_id, title, url, description, category) VALUES (?, ?, ?, ?, ?, ?)',
             [id, req.user.id, title, url || null, description, category]
         );
 
         res.status(201).json({
-            id, title, url, description, category,
-            status: 'pending', upvotes: 0,
+            id,
+            title,
+            url,
+            description,
+            category,
+            status: 'pending',
+            upvotes: 0,
             created_at: new Date().toISOString(),
         });
     } catch (err) {
-        console.error('Report error:', err);
+        logger.error('report_submit_error', { error: err.message });
         res.status(500).json({ error: 'Failed to submit report.' });
     }
 });
 
-// Get recent reports
 router.get('/', optionalAuth, async (req, res) => {
     try {
-        const db = await getDB();
-        const page = parseInt(req.query.page) || 1;
-        const limit = parseInt(req.query.limit) || 20;
+        const page = parseInt(req.query.page, 10) || 1;
+        const limit = clampPageSize(req.query.limit, 20, 100);
         const offset = (page - 1) * limit;
 
-        const reports = queryAll(db,
+        const reports = await queryAll(
             `SELECT r.*, u.username, u.avatar_color
-       FROM reports r LEFT JOIN users u ON r.user_id = u.id
-       ORDER BY r.created_at DESC LIMIT ? OFFSET ?`,
+             FROM reports r LEFT JOIN users u ON r.user_id = u.id
+             ORDER BY r.created_at DESC LIMIT ? OFFSET ?`,
             [limit, offset]
         );
 
-        const totalRow = queryOne(db, 'SELECT COUNT(*) as c FROM reports');
-
+        const totalRow = await queryOne('SELECT COUNT(*) as c FROM reports');
         res.json({
             reports,
             total: totalRow?.c || 0,
@@ -81,26 +77,68 @@ router.get('/', optionalAuth, async (req, res) => {
             totalPages: Math.ceil((totalRow?.c || 0) / limit),
         });
     } catch (err) {
-        console.error('Get reports error:', err);
+        logger.error('report_fetch_error', { error: err.message });
         res.status(500).json({ error: 'Failed to fetch reports.' });
     }
 });
 
-// Upvote a report
-router.post('/:id/upvote', authMiddleware, async (req, res) => {
+router.post('/:id/upvote', authMiddleware, reportRateLimit, async (req, res) => {
     try {
-        const db = await getDB();
-        const existing = queryOne(db, 'SELECT id FROM reports WHERE id = ?', [req.params.id]);
+        const report = await queryOne('SELECT id, upvotes FROM reports WHERE id = ?', [req.params.id]);
 
-        if (!existing) {
+        if (!report) {
             return res.status(404).json({ error: 'Report not found.' });
         }
 
-        runStmt(db, 'UPDATE reports SET upvotes = upvotes + 1 WHERE id = ?', [req.params.id]);
-        res.json({ message: 'Upvoted successfully.' });
+        const existingVote = await queryOne('SELECT report_id FROM report_votes WHERE report_id = ? AND user_id = ?', [req.params.id, req.user.id]);
+        if (existingVote) {
+            return res.status(409).json({ error: 'You have already upvoted this report.' });
+        }
+
+        await runStmt('INSERT INTO report_votes (report_id, user_id) VALUES (?, ?)', [req.params.id, req.user.id]);
+        await runStmt('UPDATE reports SET upvotes = upvotes + 1 WHERE id = ?', [req.params.id]);
+
+        res.json({ message: 'Upvoted successfully.', upvotes: Number(report.upvotes || 0) + 1 });
     } catch (err) {
-        console.error('Upvote error:', err);
+        logger.error('report_upvote_error', { error: err.message, reportId: req.params.id });
         res.status(500).json({ error: 'Failed to upvote.' });
+    }
+});
+
+router.patch('/:id/status', adminMiddleware, async (req, res) => {
+    try {
+        const status = String(req.body.status || '').trim();
+        const allowedStatuses = ['pending', 'reviewed', 'resolved'];
+
+        if (!allowedStatuses.includes(status)) {
+            return res.status(400).json({ error: 'Invalid report status.' });
+        }
+
+        const report = await queryOne('SELECT id FROM reports WHERE id = ?', [req.params.id]);
+        if (!report) {
+            return res.status(404).json({ error: 'Report not found.' });
+        }
+
+        await runStmt('UPDATE reports SET status = ? WHERE id = ?', [status, req.params.id]);
+        res.json({ message: 'Report status updated.', status });
+    } catch (err) {
+        logger.error('report_status_update_error', { error: err.message, reportId: req.params.id });
+        res.status(500).json({ error: 'Failed to update report status.' });
+    }
+});
+
+router.delete('/:id', adminMiddleware, async (req, res) => {
+    try {
+        const report = await queryOne('SELECT id FROM reports WHERE id = ?', [req.params.id]);
+        if (!report) {
+            return res.status(404).json({ error: 'Report not found.' });
+        }
+
+        await runStmt('DELETE FROM reports WHERE id = ?', [req.params.id]);
+        res.json({ message: 'Report deleted successfully.' });
+    } catch (err) {
+        logger.error('report_delete_error', { error: err.message, reportId: req.params.id });
+        res.status(500).json({ error: 'Failed to delete report.' });
     }
 });
 
