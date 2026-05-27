@@ -13,6 +13,11 @@ function getEntry(key) {
 }
 
 export function assertNotBlocked(key) {
+    const now = Date.now();
+    const entry = memoryBuckets.get(key);
+    if (entry && now < entry.blockedUntil) {
+        return Math.ceil((entry.blockedUntil - now) / 1000);
+    }
     return 0;
 }
 

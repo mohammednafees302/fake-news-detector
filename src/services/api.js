@@ -1,4 +1,4 @@
-const API_BASE = '/api';
+const API_BASE = import.meta.env.VITE_API_URL || '/api';
 const AUTH_STORAGE_KEY = 'verifynews_token';
 
 function emitAuthExpired() {
@@ -24,8 +24,8 @@ async function request(endpoint, options = {}) {
     let response;
     try {
         response = await fetch(`${API_BASE}${endpoint}`, config);
-    } catch {
-        throw new Error('Network error. Please check your connection and try again.');
+    } catch (networkErr) {
+        throw new Error('Cannot reach the server. The backend may be starting up (this can take ~30 seconds on free hosting). Please try again shortly.');
     }
 
     const contentType = response.headers.get('content-type') || '';
@@ -39,7 +39,7 @@ async function request(endpoint, options = {}) {
     }
 
     if (!response.ok) {
-        throw new Error(data?.error || 'Something went wrong');
+        throw new Error(data?.error || `Server error (${response.status}). Please try again.`);
     }
 
     return data;
